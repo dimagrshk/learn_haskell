@@ -1,3 +1,7 @@
+import Data.Char
+import Data.List
+import qualified Data.Map as Map  
+
 lucky :: (Integral a) => a -> String
 lucky 7 = "Lucky number"
 lucky x = "Not lucky"
@@ -18,8 +22,7 @@ length' [] = 0
 length' (_:xs) = 1 + length' xs
 
 sum' :: (Num a) => [a] -> a
-sum' [] = 0
-sum' (x:xs) = x + sum' xs
+sum' = foldl(+) 0 
 
 capital :: String -> String 
 capital "" = "Empty string"
@@ -96,8 +99,8 @@ quicksort :: (Ord a) => [a] -> [a]
 quicksort [] = []
 quicksort (x:xs) = 
     let
-        smallerSorted = quicksort [a | a <- xs, a <= x]
-        biggerSorted = quicksort [a | a <- xs, a > x]
+        smallerSorted = quicksort (filter (<=x) xs) 
+        biggerSorted = quicksort (filter (>x) xs)
     in
         smallerSorted ++ [x] ++ biggerSorted
 
@@ -115,3 +118,36 @@ zipWith' f (x:xs) (y:ys) = f x y:zipWith' f xs ys
 flip' :: (a -> b -> c) -> (b -> a -> c)  
 flip' f = g  
     where g x y = f y x  
+
+map' :: (a -> b) -> [a] -> [b]
+map' f xs = foldl(\acc x -> f x:acc) [] (reverse xs)
+
+chainCollatz :: (Integral a) => a -> [a]
+chainCollatz 1 = [1]
+chainCollatz n 
+    | even n = n:chainCollatz(n `div` 2)
+    | odd n = n:chainCollatz(n*3+1)
+
+numLongChains :: Int
+numLongChains = length (filter (\xs -> length xs < 15) (map chainCollatz [1..100]))
+
+search :: (Eq a) => [a] -> [a] -> Bool
+search needle haystack =   
+    let nlen = length needle  
+    in  foldl (\acc x -> if take nlen x == needle then True else acc) False (tails haystack) 
+
+encode :: Int -> String -> String
+encode shift msg = 
+    let ords = map ord msg
+        shifted = map (+ shift) ords
+    in map chr shifted
+
+decode :: Int -> String -> String
+decode shift msg  = encode (negate shift) msg
+
+findKey :: (Eq k) => k -> [(k, v)] -> Maybe v
+findKey key [] = Nothing
+findKey key ((k,v):xs) = if k == key
+    then Just v
+    else findKey key xs
+
