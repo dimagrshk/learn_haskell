@@ -2,6 +2,7 @@
 module LogAnalysis where
 
 import Data.String.Utils
+import System.IO
 
 --import Log
 data MessegeType = Info | Warning | Error Int deriving (Show, Eq)
@@ -22,3 +23,11 @@ parseMessege (x:xs)
           codeOfError = head (drop 1 (splitWs xs))
           informOfError = drop (3 + (length code) + (length codeOfError)) xs
 
+
+parse :: String -> IO [LogMessege]
+parse pathFile = do
+    content <- readFile pathFile
+    let fileLines = lines content
+    let listOfMessege = map parseMessege fileLines
+    return listOfMessege
+    
