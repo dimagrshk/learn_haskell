@@ -2,14 +2,11 @@
 module LogAnalysis where
 
 import Data.String.Utils
-import System.IO
+import System.IO()
 
---import Log
-data MessegeType = Info | Warning | Error Int deriving (Show, Eq)
+import Log
 
-type TimeStamp = Int
-
-data LogMessege = LogMessege MessegeType TimeStamp String | Uknown String deriving (Show, Eq)
+--data MessegeTree = Leaf | Node MessegeTree LogMessege MessegeTree deriving (Show)
 
 parseMessege :: String -> LogMessege
 parseMessege [] = Uknown ""
@@ -23,7 +20,6 @@ parseMessege (x:xs)
           codeOfError = head (drop 1 (splitWs xs))
           informOfError = drop (3 + (length code) + (length codeOfError)) xs
 
-
 parse :: String -> IO [LogMessege]
 parse pathFile = do
     content <- readFile pathFile
@@ -31,3 +27,18 @@ parse pathFile = do
     let listOfMessege = map parseMessege fileLines
     return listOfMessege
     
+singleton :: LogMessege -> MessegeTree   
+singleton x = Node Leaf x Leaf  
+
+timeSt :: LogMessege -> TimeStamp
+timeSt (LogMessege (Error _ ) ts _) = ts
+timeSt (LogMessege Warning ts _) = ts
+timeSt (LogMessege Info ts _) = ts
+timeSt (Uknown _) = 0
+
+treeInsert :: LogMessege -> MessegeTree -> MessegeTree
+treeInsert x Leaf = singleton x 
+treeInsert x (Node left a right)
+    | timeSt x == timeSt a = Node left x right
+    | timeSt x < timeSt a = Node (treeInsert x left) a right
+    | timeSt x > timeSt a = Node left a (treeInsert x right)
