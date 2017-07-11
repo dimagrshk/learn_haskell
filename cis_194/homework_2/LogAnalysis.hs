@@ -6,8 +6,6 @@ import System.IO()
 
 import Log
 
---data MessegeTree = Leaf | Node MessegeTree LogMessege MessegeTree deriving (Show)
-
 parseMessege :: String -> LogMessege
 parseMessege [] = Uknown ""
 parseMessege (x:xs) 
@@ -34,11 +32,19 @@ timeSt :: LogMessege -> TimeStamp
 timeSt (LogMessege (Error _ ) ts _) = ts
 timeSt (LogMessege Warning ts _) = ts
 timeSt (LogMessege Info ts _) = ts
-timeSt (Uknown _) = 0
+timeSt (Uknown _) = -1
 
 treeInsert :: LogMessege -> MessegeTree -> MessegeTree
 treeInsert x Leaf = singleton x 
 treeInsert x (Node left a right)
     | timeSt x == timeSt a = Node left x right
-    | timeSt x < timeSt a = Node (treeInsert x left) a right
-    | timeSt x > timeSt a = Node left a (treeInsert x right)
+    | timeSt x == -1 = Node left a right
+    | timeSt x > timeSt a = Node (treeInsert x left) a right
+    | timeSt x < timeSt a = Node left a (treeInsert x right)
+
+build :: [LogMessege] -> MessegeTree
+build xs = foldr treeInsert Leaf xs
+
+inOrder :: MessegeTree -> [LogMessege]
+inOrder Leaf = []
+inOrder (Node left a right) = inOrder right ++ [a] ++ inOrder left
